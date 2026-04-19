@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Echo - 自由对话模式 UI 原型</title>
+<style>
+  :root {
+    --primary: #7c3aed;
+    --primary-soft: rgba(124,58,237,0.1);
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --border: rgba(15,23,42,0.08);
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+    --bg: #fff;
+    --sidebar-bg: #f8f7ff;
+    --sidebar-width: 220px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 60px;
+    padding: 40px;
+  }
+
+  /* ===== 通用标签 ===== */
+  .label {
+    font-size: 13px;
+    color: #9ca3af;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== 原有 Coding 模式（左侧对比） ===== */
+  .coding-mode-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .echo-drawer {
+    width: 380px;
+    height: 680px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: -5px 0 40px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .sb-header {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .echo-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .echo-avatar {
+    width: 38px;
+    height: 38px;
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(124,58,237,0.35);
+  }
+
+  .echo-name { font-weight: 700; font-size: 15px; color: var(--text-main); }
+  .echo-role { font-size: 11px; color: var(--text-sub); margin-top: 1px; }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .status-select {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: var(--text-main);
+  }
+
+  .close-btn {
+    width: 32px; height: 32px;
+    border-radius: 7px; border: none;
+    background: transparent; font-size: 14px;
+    cursor: pointer; color: #9ca3af;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .close-btn:hover { background: rgba(0,0,0,0.05); color: #374151; }
+
+  /* Stepper */
+  .stepper {
+    display: flex;
+    gap: 0;
+    border-bottom: none;
+  }
+
+  .step-item {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 12px;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .step-item.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg { display: flex; gap: 8px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--primary-gradient);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .msg.user .msg-avatar {
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .bubble {
+    max-width: 75%;
+    padding: 10px 13px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-main);
+  }
+
+  .msg.echo .bubble {
+    background: #fff;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-radius: 4px 12px 12px 12px;
+  }
+
+  .msg.user .bubble {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 12px 4px 12px 12px;
+  }
+
+  /* Input area */
+  .input-wrapper {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+
+  .tag-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .tag-btn {
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 11px;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tag-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  .input-box {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(15,23,42,0.07);
+    border-radius: 8px;
+    font-size: 13px;
+    resize: none;
+    font-family: inherit;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(2,6,23,0.04);
+    outline: none;
+    color: var(--text-main);
+  }
+  .input-box:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+
+  /* ===== 自由对话模式（右侧主角） ===== */
+  .free-mode-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .free-chat-container {
+    width: 620px;
+    height: 680px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: -5px 0 40px rgba(0,0,0,0.08);
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ---- 左侧会话栏 ---- */
+  .session-sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .session-sidebar-header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .session-sidebar-header .echo-avatar {
+    width: 30px; height: 30px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .session-sidebar-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .new-session-btn {
+    margin: 10px 12px;
+    padding: 8px 12px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.25);
+  }
+  .new-session-btn:hover { opacity: 0.9; }
+  .new-session-btn .plus { font-size: 16px; line-height: 1; }
+
+  .session-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .session-group-label {
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 6px 4px;
+  }
+
+  .session-item {
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .session-item:hover { background: rgba(124,58,237,0.06); }
+  .session-item.active { background: rgba(124,58,237,0.1); }
+
+  .session-item-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .session-item.active .session-item-title { color: var(--primary); font-weight: 600; }
+
+  .session-item-time {
+    font-size: 10px;
+    color: #9ca3af;
+  }
+
+  .session-sidebar-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .exit-free-mode-btn {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-size: 11px;
+    color: var(--text-sub);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .exit-free-mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ---- 右侧主聊天区 ---- */
+  .free-chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .free-chat-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .free-chat-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .free-chat-title .title-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .free-chat-title .title-sub {
+    font-size: 11px;
+    color: var(--text-sub);
+  }
+
+  .free-mode-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .free-mode-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .free-chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* 欢迎卡片 */
+  .welcome-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.04), rgba(99,102,241,0.06));
+    border: 1px solid rgba(124,58,237,0.12);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .welcome-card .wc-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .welcome-card .wc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+  }
+
+  .welcome-card .wc-desc {
+    font-size: 12px;
+    color: var(--text-sub);
+    line-height: 1.6;
+  }
+
+  .free-input-wrapper {
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+
+  .free-input-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .free-input-hint {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  .send-btn {
+    padding: 6px 14px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    box-shadow: 0 2px 6px rgba(124,58,237,0.3);
+  }
+  .send-btn:hover { opacity: 0.9; }
+
+  /* ===== 模式切换按钮（浮动在 Coding 模式上） ===== */
+  .mode-switch-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .mode-switch-label {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+
+  .mode-switch-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(124,58,237,0.3);
+    background: rgba(124,58,237,0.06);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-switch-btn:hover {
+    background: rgba(124,58,237,0.12);
+    border-color: var(--primary);
+  }
+
+  .mode-switch-btn .icon { font-size: 14px; }
+
+  /* ===== 分隔箭头 ===== */
+  .arrow-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #9ca3af;
+    font-size: 28px;
+    padding-top: 40px;
+  }
+
+  .arrow-divider .arrow-label {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ===== 左：当前 Coding 模式 ===== -->
+<div class="coding-mode-wrapper">
+  <div class="label">当前 Coding 模式</div>
+  <div class="echo-drawer">
+    <!-- Header -->
+    <div class="sb-header">
+      <div class="sb-top">
+        <div class="echo-identity">
+          <div class="echo-avatar">⚡️</div>
+          <div>
+            <div class="echo-name">Echo</div>
+            <div class="echo-role">产品导师</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <select class="status-select">
+            <option>✅ 阶段:需求</option>
+            <option>🚀 阶段:业务</option>
+          </select>
+          <!-- 模式切换按钮 -->
+          <button class="mode-switch-btn" style="padding:5px 10px; font-size:11px; border-radius:16px;">
+            <span class="icon">💬</span> 自由对话
+          </button>
+          <button class="close-btn">✖</button>
+        </div>
+      </div>
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step-item active">澄清</div>
+        <div class="step-item">PRD</div>
+        <div class="step-item">逻辑</div>
+        <div class="step-item">UI</div>
+        <div class="step-item">评审</div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-area">
+      <div class="msg echo">
+        <div class="msg-avatar">⚡️</div>
+        <div class="bubble">你好！我是 Echo，你的产品导师。请描述你的需求，我来帮你分析。</div>
+      </div>
+      <div class="msg user">
+        <div class="msg-avatar">我</div>
+        <div class="bubble">帮我分析一下这个需求的用户场景</div>
+      </div>
+      <div class="msg echo">
+        <div class="msg-avatar">⚡️</div>
+        <div class="bubble">
+          根据当前需求信息，我来分析用户场景：<br><br>
+          <strong>核心用户群体：</strong>跨境电商卖家<br>
+          <strong>使用场景：</strong>日常订单管理与物流跟踪<br>
+          <strong>痛点：</strong>多平台数据分散，操作效率低
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-wrapper">
+      <div class="tag-row">
+        <button class="tag-btn">📋 需求信息</button>
+        <button class="tag-btn">🗑 清除会话</button>
+      </div>
+      <textarea class="input-box" rows="2" placeholder="描述你的需求或问题... （Shift + Enter 换行）"></textarea>
+    </div>
+  </div>
+
+  <!-- 模式切换说明 -->
+  <div class="mode-switch-demo">
+    <div class="mode-switch-label">点击右上角按钮切换模式 ↑</div>
+  </div>
+</div>
+
+<!-- ===== 箭头 ===== -->
+<div class="arrow-divider">
+  <span>→</span>
+  <span class="arrow-label">切换到</span>
+  <span class="arrow-label">自由对话</span>
+</div>
+
+<!-- ===== 右：自由对话模式 ===== -->
+<div class="free-mode-wrapper">
+  <div class="label">自由对话模式（新）</div>
+  <div class="free-chat-container">
+
+    <!-- 左侧会话管理栏 -->
+    <div class="session-sidebar">
+      <div class="session-sidebar-header">
+        <div class="echo-avatar">⚡️</div>
+        <div class="session-sidebar-title">Echo</div>
+      </div>
+
+      <button class="new-session-btn">
+        <span class="plus">＋</span> 新建会话
+      </button>
+
+      <div class="session-list">
+        <div class="session-group-label">今天</div>
+
+        <div class="session-item active">
+          <div class="session-item-title">如何优化海外仓发货流程</div>
+          <div class="session-item-time">14:32</div>
+        </div>
+
+        <div class="session-item">
+          <div class="session-item-title">亚马逊 FBA 补货策略分析</div>
+          <div class="session-item-time">10:15</div>
+        </div>
+
+        <div class="session-group-label">昨天</div>
+
+        <div class="session-item">
+          <div class="session-item-title">新功能需求拆解思路</div>
+          <div class="session-item-time">昨天</div>
+        </div>
+
+        <div class="session-item">
+          <div class="session-item-title">用户增长漏斗分析</div>
+          <div class="session-item-time">昨天</div>
+        </div>
+
+        <div class="session-group-label">更早</div>
+
+        <div class="session-item">
+          <div class="session-item-title">PRD 评审要点整理</div>
+          <div class="session-item-time">4月5日</div>
+        </div>
+
+        <div class="session-item">
+          <div class="session-item-title">竞品功能对比分析</div>
+          <div class="session-item-time">4月3日</div>
+        </div>
+
+        <div class="session-item">
+          <div class="session-item-title">物流异常处理 SOP</div>
+          <div class="session-item-time">4月1日</div>
+        </div>
+      </div>
+
+      <div class="session-sidebar-footer">
+        <button class="exit-free-mode-btn">
+          <span>←</span> 返回 Coding 模式
+        </button>
+      </div>
+    </div>
+
+    <!-- 右侧主聊天区 -->
+    <div class="free-chat-main">
+      <div class="free-chat-header">
+        <div class="free-chat-title">
+          <div class="title-text">如何优化海外仓发货流程</div>
+          <div class="title-sub">自由对话 · 无需求上下文</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="free-mode-badge">
+            <div class="dot"></div>
+            自由对话
+          </div>
+          <button class="close-btn">✖</button>
+        </div>
+      </div>
+
+      <div class="free-chat-area">
+        <!-- 欢迎卡片 -->
+        <div class="welcome-card">
+          <div class="wc-icon">💬</div>
+          <div class="wc-title">自由对话模式</div>
+          <div class="wc-desc">无需绑定 Coding 需求，随时与 Echo 探讨任何产品、业务或技术问题。</div>
+        </div>
+
+        <div class="msg echo">
+          <div class="msg-avatar">⚡️</div>
+          <div class="bubble">你好！现在是自由对话模式，可以聊任何话题。你想探讨什么？</div>
+        </div>
+
+        <div class="msg user">
+          <div class="msg-avatar">我</div>
+          <div class="bubble">如何优化海外仓发货流程，减少出错率？</div>
+        </div>
+
+        <div class="msg echo">
+          <div class="msg-avatar">⚡️</div>
+          <div class="bubble">
+            海外仓发货优化可以从三个维度入手：<br><br>
+            <strong>1. 系统层面</strong><br>
+            引入条码扫描核验，减少人工拣货错误率<br><br>
+            <strong>2. 流程层面</strong><br>
+            建立标准化 SOP，关键节点设置双人复核<br><br>
+            <strong>3. 数据层面</strong><br>
+            实时监控出错率指标，设置异常预警阈值
+          </div>
+        </div>
+      </div>
+
+      <div class="free-input-wrapper">
+        <div class="free-input-actions">
+          <span class="free-input-hint">Enter 发送 · Shift+Enter 换行</span>
+          <button class="send-btn">发送 ↑</button>
+        </div>
+        <textarea class="input-box" rows="2" placeholder="随便聊点什么..."></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
